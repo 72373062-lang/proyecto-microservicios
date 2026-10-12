@@ -31,5 +31,71 @@ services:
       timeout: 5s
       retries: 10
 
+  productos:
+    build: ./productos
+    container_name: productos-app
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: productos-db
+      DB_PORT: 5432
+      DB_NAME: productos_db
+      DB_USER: productos_user
+      DB_PASSWORD: productos123
+    depends_on:
+      productos-db:
+        condition: service_healthy
+
+  productos-db:
+    image: postgres:16
+    container_name: productos-db
+    environment:
+      POSTGRES_DB: productos_db
+      POSTGRES_USER: productos_user
+      POSTGRES_PASSWORD: productos123
+    volumes:
+      - productos_data:/var/lib/postgresql/data
+      - ./productos/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U productos_user -d productos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pedidos:
+    build: ./pedidos
+    container_name: pedidos-app
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DB_HOST: pedidos-db
+      DB_PORT: 5432
+      DB_NAME: pedidos_db
+      DB_USER: pedidos_user
+      DB_PASSWORD: pedidos123
+    depends_on:
+      pedidos-db:
+        condition: service_healthy
+
+  pedidos-db:
+    image: postgres:16
+    container_name: pedidos-db
+    environment:
+      POSTGRES_DB: pedidos_db
+      POSTGRES_USER: pedidos_user
+      POSTGRES_PASSWORD: pedidos123
+    volumes:
+      - pedidos_data:/var/lib/postgresql/data
+      - ./pedidos/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pedidos_user -d pedidos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   usuarios_data:
+  productos_data:
+  pedidos_data:
