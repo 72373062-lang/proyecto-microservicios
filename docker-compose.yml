@@ -1,0 +1,35 @@
+services:
+  usuarios:
+    build: ./usuarios
+    container_name: usuarios-app
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: usuarios-db
+      DB_PORT: 5432
+      DB_NAME: usuarios_db
+      DB_USER: usuarios_user
+      DB_PASSWORD: usuarios123
+    depends_on:
+      usuarios-db:
+        condition: service_healthy
+
+  usuarios-db:
+    image: postgres:16
+    container_name: usuarios-db
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: usuarios_user
+      POSTGRES_PASSWORD: usuarios123
+    volumes:
+      - usuarios_data:/var/lib/postgresql/data
+      - ./usuarios/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuarios_user -d usuarios_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  usuarios_data:
