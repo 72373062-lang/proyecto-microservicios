@@ -1,0 +1,249 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: usuarios-pgdata
+  namespace: microservicios
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usuarios-db
+  namespace: microservicios
+spec:
+  selector:
+    app: usuarios-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usuarios-db
+  namespace: microservicios
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usuarios-db
+  template:
+    metadata:
+      labels:
+        app: usuarios-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: usuarios_db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: usuarios-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: usuarios-password
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - usuarios_user
+                - -d
+                - usuarios_db
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/postgresql/data
+            - name: inicializacion
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: usuarios-pgdata
+        - name: inicializacion
+          configMap:
+            name: usuarios-init
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: productos-pgdata
+  namespace: microservicios
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productos-db
+  namespace: microservicios
+spec:
+  selector:
+    app: productos-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productos-db
+  namespace: microservicios
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productos-db
+  template:
+    metadata:
+      labels:
+        app: productos-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: productos_db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: productos-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: productos-password
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - productos_user
+                - -d
+                - productos_db
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/postgresql/data
+            - name: inicializacion
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: productos-pgdata
+        - name: inicializacion
+          configMap:
+            name: productos-init
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pedidos-pgdata
+  namespace: microservicios
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pedidos-db
+  namespace: microservicios
+spec:
+  selector:
+    app: pedidos-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pedidos-db
+  namespace: microservicios
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pedidos-db
+  template:
+    metadata:
+      labels:
+        app: pedidos-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: pedidos_db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: pedidos-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: pedidos-password
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - pedidos_user
+                - -d
+                - pedidos_db
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/postgresql/data
+            - name: inicializacion
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: pedidos-pgdata
+        - name: inicializacion
+          configMap:
+            name: pedidos-init

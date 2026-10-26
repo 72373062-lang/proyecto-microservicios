@@ -1,0 +1,169 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usuarios
+  namespace: microservicios
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: usuarios
+  template:
+    metadata:
+      labels:
+        app: usuarios
+    spec:
+      containers:
+        - name: usuarios
+          image: usuarios:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3001
+          env:
+            - name: PORT
+              value: "3001"
+            - name: DB_HOST
+              value: usuarios-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: usuarios_db
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: usuarios-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: usuarios-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usuarios
+  namespace: microservicios
+spec:
+  type: NodePort
+  selector:
+    app: usuarios
+  ports:
+    - port: 3001
+      targetPort: 3001
+      nodePort: 31001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productos
+  namespace: microservicios
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: productos
+  template:
+    metadata:
+      labels:
+        app: productos
+    spec:
+      containers:
+        - name: productos
+          image: productos:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3002
+          env:
+            - name: PORT
+              value: "3002"
+            - name: DB_HOST
+              value: productos-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: productos_db
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: productos-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: productos-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productos
+  namespace: microservicios
+spec:
+  type: NodePort
+  selector:
+    app: productos
+  ports:
+    - port: 3002
+      targetPort: 3002
+      nodePort: 31002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pedidos
+  namespace: microservicios
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pedidos
+  template:
+    metadata:
+      labels:
+        app: pedidos
+    spec:
+      containers:
+        - name: pedidos
+          image: pedidos:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3003
+          env:
+            - name: PORT
+              value: "3003"
+            - name: DB_HOST
+              value: pedidos-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: pedidos_db
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: pedidos-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: pedidos-password
+            - name: USUARIOS_URL
+              value: "http://usuarios:3001"
+            - name: PRODUCTOS_URL
+              value: "http://productos:3002"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pedidos
+  namespace: microservicios
+spec:
+  type: NodePort
+  selector:
+    app: pedidos
+  ports:
+    - port: 3003
+      targetPort: 3003
+      nodePort: 31003
